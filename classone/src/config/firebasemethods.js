@@ -2,8 +2,9 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signOut,
 } from "firebase/auth";
-import { getDatabase, set, ref, onValue } from "firebase/database";
+import { getDatabase, set, ref, onValue, push } from "firebase/database";
 
 import app from "./firebaseconfig";
 
@@ -47,18 +48,72 @@ let loginUser = (obj) => {
       });
   });
 };
-let signoutUser = () => {};
-let fbGet = () => {};
-let fbGetById = () => {};
+let checkAuth = () => {
+  return new Promise((resolve, reject) => {
+    if(user){
+      const uid = user.uid;
+      resolve(uid);
+    }else{
+      reject('user not Logged in')
+    }
+  })
+}
+let UserLogOut = () => {
+  return signOut(auth)
+
+};
+let getFBData = (nodeName, id) => {
+ let reference = ref(db,` ${nodeName}/${id ? id : ""} `);
+ return new Promise((resolve, reject) => {
+  onValue(reference,(dt)=>{
+    if(dt.exists()){
+      if(id) {
+        resolve(dt.val());
+      }else{
+        resolve(Object.values(dt.val()));
+      }
+    }else{
+      reject("No Data Found")
+    }
+  })
+ });
+};
+let PostFBData= (nodename , obj,id) => {
+  return new Promise((resolve, reject) => {
+    if(id){
+      let reference = ref(db,`${nodename}/${id ? id : ""}/ `);
+      set(reference,obj)
+      .then((res) =>{
+        resolve(res);
+
+      })
+      .catch((err) => {
+        reject(err);
+      });
+    }else{
+      let keyRef = ref(db, `${nodename}`);
+      obj.id = push(keyRef).key;
+      let postRef = ref(db,`${nodename}/${obj.id}`);
+      set(postRef,obj)
+      .then((res) => {
+        resolve(res);
+      })
+       .catch((err)=> {
+        reject(err);
+       });
+    }
+  });
+};
 let fbEdit = () => {};
 let fbDelete = () => {};
 
 export {
+  checkAuth,
   signUpUser,
   loginUser,
-  signoutUser,
-  fbGet,
-  fbGetById,
+  UserLogOut,
+  getFBData,
+  PostFBData,
   fbEdit,
   fbDelete,
 };

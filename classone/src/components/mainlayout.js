@@ -17,6 +17,7 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import Posts from "../screens/dashboardscreens/post";
 import CommentsScreen from "../screens/dashboardscreens/comments";
 import PostForm from "../screens/dashboardscreens/postform";
+import ProtectedRoute from "../config/protectedRoute";
 
 const drawerWidth = 240;
 
@@ -66,12 +67,21 @@ export default function MainLayout() {
         <List>
           {menuList.map((x, index) => (
             <ListItem
-              onClick={() => changeScreen(x.route)}
+              onClick={() => {
+                UeserLogOut()
+                .then(()=>{
+                  console.log();
+                  navigation("/login");
+                }).catch((err) => {
+                  console.log(err)
+                })
+                
+              }}
               key={index}
               disablePadding
             >
               <ListItemButton>
-                <ListItemIcon>
+                <ListItemIcon> 
                   {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
                 </ListItemIcon>
                 <ListItemText primary={x.name} />
@@ -86,7 +96,7 @@ export default function MainLayout() {
       >
         <Toolbar />
         <Routes>
-          <Route path="post/" element={<Posts />} />
+          <Route path="post/" element={<ProtectedRoute Component={Posts} />} />
           <Route path="comments/" element={<CommentsScreen />} />
           <Route path="postform/" element={<PostForm />} />
           <Route path="postform/:id" element={<PostForm />} />
